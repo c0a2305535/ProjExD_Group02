@@ -62,9 +62,11 @@ class Enemy(Character):
 
 # 城のクラス
 class Castle:
-    def __init__(self, x, y, health):
-        self.image = pg.Surface((100, 100))
-        self.image.fill((150, 75, 0))  # 茶色の城
+    def __init__(self, x, y, health, is_enemy):
+        if is_enemy :
+            self.image = pg.transform.rotozoom(pg.image.load("fig/S__14606339.png"),0,0.25)
+        else:
+            self.image = pg.image.load("fig/Eiffel_tower.png")
         self.rect = self.image.get_rect(topleft=(x, y))
         self.health = health
 
@@ -75,16 +77,19 @@ class Beam:
     """
     こうかとんが放つビームに関するクラス
     """
+    ct = 10
+
     def __init__(self,castle:Castle):
         """
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん（Birdインスタンス）
         """
-        self.img = pg.image.load("fig/beam.png")  # ビームSurface
+        self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"),2,2)  # ビームSurface
         self.rct = self.img.get_rect()  # ビームSurfaceのRectを抽出
         self.rct.centery = castle.rect.centery  # こうかとんの中心縦座標をビームの縦座標
         self.rct.left = castle.rect.right  # こうかとんの右座標をビームの左座標
         self.vx, self.vy = 5, 0
+        
 
     def update(self, screen: pg.Surface):
         """
@@ -93,7 +98,9 @@ class Beam:
         """
 
         self.rct.move_ip(self.vx, self.vy)
-        screen.blit(self.img, self.rct)  
+        screen.blit(self.img, self.rct) 
+
+    
 
 
 
@@ -114,23 +121,25 @@ def main():
     spawn_timer = 0
     beams = []
     # 城の設定
-    cat_castle = Castle(50, HEIGHT // 2 - 50, health=1000)  # 味方の城
-    enemy_castle = Castle(WIDTH - 150, HEIGHT // 2 - 50, health=1000)  # 敵の城
+    cat_castle = Castle(50, HEIGHT // 2 - 50, 1000, False)  # 味方の城
+    enemy_castle = Castle(WIDTH - 150, HEIGHT // 2 - 50, 1000, True)  # 敵の城
 
     running = True
+    tmr = 0
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
-
+    
             # キャットを召喚
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE and money >= 100:  # スペースキーで召喚
                     y_position = HEIGHT // 2  # 中央のy座標に設定
                     cat_list.append(Cat(y_position))
                     money -= 100
-                if event.key == pg.K_q:
+                if event.key == pg.K_q and Beam.ct == 0:
                     beams.append(Beam(cat_castle))
+                    Beam.ct = 100
 
         # 敵の出現
         spawn_timer += 1
@@ -205,13 +214,15 @@ def main():
                 beams.remove(beam)
             else:
                 beam.update(screen)
-
-        # ゲーム終了条件
+        if tmr % 60 == 0 and Beam.ct > 0:
+            Beam.ct -= 1
+                # ゲーム終了条件
         if cat_castle.health <= 0 or enemy_castle.health <= 0:
             running = False  # ゲーム終了
 
         pg.display.flip()
         clock.tick(60)
+        tmr += 1
 
     pg.quit()
 
