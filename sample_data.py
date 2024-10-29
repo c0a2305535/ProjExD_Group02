@@ -96,28 +96,32 @@ class Beam:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
-class Money:
+class Money:    #資金クラス
     def __init__(self):
-        self.money = 0   #資金
         self.rate = 1   #2フレーム当たりの増加資金
-        self.max = 500  #資金の上限
-        self.level = 1
+        self.money = 0   #資金
+        self.max_money = 500  #資金の上限
+        self.level = 1  #現在のレベル
+        self.max_level = 5
+        self.level_up_cost = self.max_money * 0.8
 
     def update(self):
         self.money += self.rate
-        if self.money >= self.max:
-            self.money = self.max
+        if self.money >= self.max_money:
+            self.money = self.max_money
     
     def kill_bonus(self, bonus: int):
         self.money += bonus
-        if self.money >= self.max:
-            self.money = self.max
+        if self.money >= self.max_money:
+            self.money = self.max_money
 
     def change_level(self) -> bool:
-        if self.level < 5:
-            self.level += 1
+        if self.level < self.max_level and self.money >= self.level_up_cost:
             self.rate += 1
-            self.max += 500
+            self.money -= self.level_up_cost
+            self.max_money += 500
+            self.level += 1
+            self.level_up_cost = self.max_money * 0.8
             return True
         else:
             return False
@@ -141,8 +145,8 @@ def main():
     spawn_timer = 0
     beams = []
     tmr = 0
-    sound_money_failure = pg.mixer.Sound('sound/キャンセル3.mp3')
-    sound_money_success = pg.mixer.Sound('sound/ゲージ回復2.mp3')
+    sound_money_failure = pg.mixer.Sound('sound/キャンセル3.mp3')   #資金レベルアップ失敗音
+    sound_money_success = pg.mixer.Sound('sound/ゲージ回復2.mp3')   #資金レベルアップ成功音
 
     # 城の設定
     cat_castle = Castle(50, HEIGHT // 2 - 50, health=1000)  # 味方の城
@@ -221,19 +225,25 @@ def main():
         if tmr % 1 == 0:
             money.update()
 
+        if money.level < money.max_level:
+            button_text = f"push 'W': Money Lv up. (cost={money.level_up_cost:.0f})"
+        else:
+            button_text = f"push 'W': Money Lv up. (Lv. MAX)"
+        screen.blit(font.render(button_text, True, BLACK), (10, 10))
+
         # 資源を表示
-        money_text = font.render(f"Money: {money.money}/{money.max} (lv.{money.level})", True, BLACK)
-        screen.blit(money_text, (10, 10))
+        money_text = font.render(f"Money: {money.money:.0f}/{money.max_money} (Lv.{money.level})", True, BLACK)
+        screen.blit(money_text, (10, 40))
 
         # HPを表示
         castle_hp_text = font.render(f"Cat Castle HP: {cat_castle.health}", True, BLACK)
-        screen.blit(castle_hp_text, (10, 40))
+        screen.blit(castle_hp_text, (10, 70))
         enemy_castle_hp_text = font.render(f"Enemy Castle HP: {enemy_castle.health}", True, BLACK)
-        screen.blit(enemy_castle_hp_text, (10, 70))
+        screen.blit(enemy_castle_hp_text, (10, 100))
 
         for i, cat in enumerate(cat_list):
             hp_text = font.render(f"Cat {i + 1} HP: {cat.health}", True, BLACK)
-            screen.blit(hp_text, (10, 100 + i * 30))
+            screen.blit(hp_text, (10, 130 + i * 30))
 
         for i, enemy in enumerate(enemy_list):
             hp_text = font.render(f"Enemy {i + 1} HP: {enemy.health}", True, BLACK)
