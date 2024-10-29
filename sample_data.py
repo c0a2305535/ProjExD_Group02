@@ -20,6 +20,7 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
 
 # 初期設定
 pg.init()
+pg.mixer.init()
 
 # 画面サイズ
 WIDTH, HEIGHT = 800, 600
@@ -93,8 +94,33 @@ class Beam:
         """
 
         self.rct.move_ip(self.vx, self.vy)
-        screen.blit(self.img, self.rct)  
+        screen.blit(self.img, self.rct)
 
+class Money:
+    def __init__(self):
+        self.money = 0   #資金
+        self.rate = 1   #2フレーム当たりの増加資金
+        self.max = 500  #資金の上限
+        self.level = 1
+
+    def update(self):
+        self.money += self.rate
+        if self.money >= self.max:
+            self.money = self.max
+    
+    def kill_bonus(self, bonus: int):
+        self.money += bonus
+        if self.money >= self.max:
+            self.money = self.max
+
+    def change_level(self) -> bool:
+        if self.level < 5:
+            self.level += 1
+            self.rate += 1
+            self.max += 500
+            return True
+        else:
+            return False
 
 
 # バトル関数
@@ -107,15 +133,21 @@ def battle(cat, enemy):
 
 # ゲームのメインループ
 def main():
+    font = pg.font.Font(None, 36)
     clock = pg.time.Clock()
     cat_list = []
     enemy_list = []
-    money = 1000  # 最初のお金
+    money = Money() #資金を初期化
     spawn_timer = 0
     beams = []
+    tmr = 0
+    sound_money_failure = pg.mixer.Sound('sound/キャンセル3.mp3')
+    sound_money_success = pg.mixer.Sound('sound/ゲージ回復2.mp3')
+
     # 城の設定
     cat_castle = Castle(50, HEIGHT // 2 - 50, health=1000)  # 味方の城
     enemy_castle = Castle(WIDTH - 150, HEIGHT // 2 - 50, health=1000)  # 敵の城
+
 
     running = True
     while running:
@@ -125,12 +157,18 @@ def main():
 
             # キャットを召喚
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE and money >= 100:  # スペースキーで召喚
+                if event.key == pg.K_SPACE and money.money >= 100:  # スペースキーで召喚
                     y_position = HEIGHT // 2  # 中央のy座標に設定
                     cat_list.append(Cat(y_position))
-                    money -= 100
+                    money.money -= 100
                 if event.key == pg.K_q:
                     beams.append(Beam(cat_castle))
+                if event.key == pg.K_w:
+                    res = money.change_level()
+                    if not res:
+                        sound_money_failure.play(1)
+                    else:
+                        sound_money_success.play(1)
 
         # 敵の出現
         spawn_timer += 1
@@ -153,7 +191,7 @@ def main():
                     cat.moving = False  # 移動を止める
                     enemy_list.remove(enemy)  # バトル後に敵を削除
                     if battle(cat, enemy):
-                        money += 50  # 勝ったらお金が増える
+                        money.kill_bonus(20)  # 勝ったらお金が増える
                         cat.moving = True  # 敵を倒したら再び前に進む
                     else:
                         cat_list.remove(cat)  # 負けたらキャットを削除
@@ -180,9 +218,11 @@ def main():
         for enemy in enemy_list:
             enemy.draw(screen)
 
+        if tmr % 1 == 0:
+            money.update()
+
         # 資源を表示
-        font = pg.font.Font(None, 36)
-        money_text = font.render(f"Money: {money}", True, BLACK)
+        money_text = font.render(f"Money: {money.money}/{money.max} (lv.{money.level})", True, BLACK)
         screen.blit(money_text, (10, 10))
 
         # HPを表示
@@ -212,6 +252,7 @@ def main():
 
         pg.display.flip()
         clock.tick(60)
+        tmr += 1
 
     pg.quit()
 
