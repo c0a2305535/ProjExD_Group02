@@ -35,7 +35,7 @@ class Character:
     def __init__(self, x, y, health, attack_power, image_color):
         self.image = pg.Surface((50, 50))  # 正方形のキャラクター
         self.image.fill(image_color)  # 指定された色
-        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect = self.image.get_rect(center=(x, y))
         self.health = health
         self.attack_power = attack_power
 
@@ -45,7 +45,7 @@ class Character:
 # 味方のクラス
 class Cat(Character):
     def __init__(self, y):
-        super().__init__(150, y, health=100, attack_power=10, image_color=(255, 204, 204))
+        super().__init__(90, y, health=100, attack_power=10, image_color=(255, 204, 204))
         self.moving = True  # 移動中かどうかを管理
 
     def move(self):
@@ -55,7 +55,7 @@ class Cat(Character):
 # 敵のクラス
 class Enemy(Character):
     def __init__(self, y):
-        super().__init__(WIDTH - 100, y, health=100, attack_power=5, image_color=(204, 204, 255))
+        super().__init__(WIDTH - 90, y, health=100, attack_power=5, image_color=(204, 204, 255))
 
     def move(self):
         self.rect.x -= 5  # 移動速度
@@ -121,8 +121,8 @@ def main():
     spawn_timer = 0
     beams = []
     # 城の設定
-    cat_castle = Castle(50, HEIGHT // 2 - 50, 1000, False)  # 味方の城
-    enemy_castle = Castle(WIDTH - 150, HEIGHT // 2 - 50, 1000, True)  # 敵の城
+    cat_castle = Castle(0, HEIGHT // 2 - 50, 1000, False)  # 味方の城
+    enemy_castle = Castle(WIDTH - 180, HEIGHT // 2 - 50, 1000, True)  # 敵の城
 
     running = True
     tmr = 0
