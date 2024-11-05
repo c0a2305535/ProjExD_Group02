@@ -4,6 +4,7 @@ import random
 import math
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     """
     オブジェクトが画面内or画面外を判定し，真理値タプルを返す関数
@@ -17,8 +18,10 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
         tate = False
     return yoko, tate
 
+
 # 初期設定
 pg.init()
+pg.mixer.init()
 
 # 画面サイズ
 WIDTH, HEIGHT = 800, 600
@@ -34,8 +37,8 @@ BLACK = (0, 0, 0)
 RED = (255,0,0)
 
 # フォント設定
-font = pg.font.Font(None, 74)
-small_font = pg.font.Font(None, 36)
+font_big = pg.font.Font(None, 74)
+font = pg.font.Font(None, 36)
 
 # スタート画面の表示関数
 def start_screen():
@@ -43,29 +46,15 @@ def start_screen():
     start_background = pg.transform.scale(start_background, (WIDTH, HEIGHT))  # スケーリング
     screen.blit(start_background, (0, 0))  # 背景を描画
 
-    title_text = font.render("Cat Battle Game", True, BLACK)
-    start_text = small_font.render("Press Enter to Start", True, BLACK)
+    title_text = font_big.render("Cat Battle Game", True, BLACK)
+    start_text = font.render("Press Enter to Start", True, BLACK)
     screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, HEIGHT // 2 - 100))
     screen.blit(start_text, (WIDTH // 2 - start_text.get_width() // 2, HEIGHT // 2))
     pg.display.flip()
 
+
 # キャラクターの基底クラス
 class Character:
-    #def __init__(self, x, y, health, attack_power, image_color):
-        #self.image = pg.Surface((50, 50))  # 正方形のキャラクター
-        #self.image.fill(image_color)  # 指定された色
-        #self.rect = self.image.get_rect(center=(x, y))
-
-
-    # def __init__(self, x, y, health, attack_power, img_obj=None, image_color=None):
-    #     if img_obj:  # 画像が指定されている場合は画像を使う
-    #         self.image = img_obj
-    #     else:  # 画像が指定されていない場合は色で塗る
-    #         self.image = pg.Surface((50, 50))
-    #         self.image.fill(image_color)
-        
-    #     self.rect = self.image.get_rect(center=(x, y))
-
 
     def __init__(self, x, y, health, attack_power, img_obj):
         if img_obj:  # 画像が指定されている場合は画像を使う
@@ -78,20 +67,19 @@ class Character:
         self.attack_power = attack_power
         self.moving = True
 
-
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
 
 # 味方のクラス
 class Normal(Character):
     def __init__(self, y,img_obj):
-        #super().__init__(90, y, health=100, attack_power=10, image_color=(255, 204, 204))
-        #self.moving = True  # 移動中かどうかを管理
         super().__init__(150, y, health=100, attack_power=10, img_obj=img_obj)
 
     def move(self):
         if self.moving:
             self.rect.x += 2  # 移動速度
+
 
 class Strong(Character):
     def __init__(self, y,img_obj):
@@ -100,6 +88,7 @@ class Strong(Character):
     def move(self):
         if self.moving:
             self.rect.x += 2
+
 
 # 防御力が高いキャットクラス
 class Health(Character):
@@ -120,6 +109,7 @@ class FastEnemy(Character):
     def move(self):
         self.rect.x -= 7  # 高速移動
 
+
 class TankEnemy(Character):
     def __init__(self, y, img_obj):
         super().__init__(WIDTH - 100, y, health=200, attack_power=10, img_obj=img_obj)
@@ -128,6 +118,7 @@ class TankEnemy(Character):
     def move(self):
         self.rect.x -= 2  # 遅いが耐久力が高い
 
+
 class BalancedEnemy(Character):
     def __init__(self, y, img_obj):
         super().__init__(WIDTH - 100, y, health=100, attack_power=8, img_obj=img_obj)
@@ -135,6 +126,7 @@ class BalancedEnemy(Character):
 
     def move(self):
         self.rect.x -= 4  # バランス型
+
 
 # 城のクラス
 class Castle:
@@ -148,6 +140,7 @@ class Castle:
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
 
 class Beam:
     """
@@ -169,7 +162,37 @@ class Beam:
         screen.blit(self.img, self.rct) 
 
 
-        #screen.blit(self.img, self.rct)
+class Money:    #資金クラス
+    def __init__(self):
+        self.rate = 1   #2フレーム当たりの増加資金
+        self.money = 0   #資金
+        self.max_money = 500  #資金の上限
+        self.level = 1  #現在の資金レベル
+        self.max_level = 5  #資金レベルの上限
+        self.level_up_cost = self.max_money * 0.8   #資金レベルアップに必要となるコスト
+
+    def update(self):
+        self.money += self.rate #一定時間ごとに資金を増加
+        #上限を超えない
+        if self.money >= self.max_money:
+            self.money = self.max_money
+    
+    def kill_bonus(self, bonus: int):
+        self.money += bonus #相手ユニットを倒した際に資金を獲得
+        #上限を超えない
+        if self.money >= self.max_money:
+            self.money = self.max_money
+
+    def change_level(self) -> bool:
+        if self.level < self.max_level and self.money >= self.level_up_cost:    #レベルが最大値でないかつ必要資金が集まっている場合
+            self.money -= self.level_up_cost    #必要資金を消費
+            self.rate += 1  #時間増加資金を追加
+            self.max_money += 500   #上限を増加
+            self.level += 1 #レベルを増加
+            self.level_up_cost = self.max_money * 0.8   #レベルアップに必要なコストを再設定
+            return True #正常終了Trueを返却
+        else:   #条件を満たさない場合Falseを返却
+            return False
 
         
 class Explosion:
@@ -194,6 +217,7 @@ def battle(cat, enemy):
             cat.health -= enemy.attack_power
     return cat.health > 0  # Trueならキャットが勝った
 
+
 # 終了画面表示用関数
 def end_screen(message):
     end_background = pg.image.load("fig/end_background.png")  # 終了画面用の背景画像を読み込み
@@ -208,27 +232,29 @@ def end_screen(message):
 
 # ゲームのメインループ
 def main():
-    pg.init()  # Pygameの初期化
-    pg.mixer.init()  # ミキサーの初期化
-    pg.mixer.music.load("fig/battle_music.wav")  # 音楽ファイルの読み込み
-    pg.mixer.music.play(-1)  # 音楽をループ再生
+    font = pg.font.Font(None, 36)
     clock = pg.time.Clock()
+
     cat_list = []
     enemy_list = []
     explosions = []
-    money = 1000  # 最初のお金
-    spawn_timer = 0
+    money = Money() #資金を初期化
     beams = []
-    y_position = HEIGHT // 2
+    tmr = 0
+
+    sound_bgm = pg.mixer.Sound("sound/battle_music.wav")
+    sound_money_failure = pg.mixer.Sound("sound/キャンセル3.mp3")   #資金レベルアップ失敗音
+    sound_money_success = pg.mixer.Sound("sound/ゲージ回復2.mp3")   #資金レベルアップ成功音
+
+    sound_bgm.play(-1)
+
     # 城の設定
     cat_castle = Castle(0, HEIGHT // 2 - 50, 1000, False)  # 味方の城
     enemy_castle = Castle(WIDTH - 180, HEIGHT // 2 - 50, 1000, True)  # 敵の城
-    selected_cat_type = Normal
-    #cat_castle = Castle(50, HEIGHT // 2 - 50, health=1000)  # 味方の城
-    #enemy_castle = Castle(WIDTH - 150, HEIGHT // 2 - 50, health=1000)  # 敵の城
 
     running = True
     tmr = 0
+
     cat_img_name = ["fig/AUNZ4365.JPG","fig/IMG_E0591.JPG","fig/IMG_9345.JPG"]
     caractor_imgs = []
     for i in cat_img_name:
@@ -240,6 +266,8 @@ def main():
     for i in enemy_img_data:
         enemy_imgs.append(pg.transform.scale(pg.image.load(i[0]), i[1]))  # 画像をリサイズ)
 
+    y_position = HEIGHT // 2
+
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -247,22 +275,26 @@ def main():
     
             # キャットを召喚
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_1:
+                if event.key == pg.K_1 and money.money >= 50:
                     cat_list.append(Normal(y_position,caractor_imgs[0]))
-                    money -= 10
-                elif event.key == pg.K_2:
+                    money.money -= 50
+                elif event.key == pg.K_2 and money.money >= 100:
                     cat_list.append(Strong(y_position,caractor_imgs[1]))
-                    money -= 50
-                elif event.key == pg.K_3:
+                    money.money -= 100
+                elif event.key == pg.K_3 and money.money >= 200:
                     cat_list.append(Health(y_position,caractor_imgs[2]))
-                    money -= 100
+                    money.money -= 200
                 
                 if event.key == pg.K_q and Beam.ct == 0:
                     beams.append(Beam(cat_castle))
                     Beam.ct = 30
 
-
-
+                if event.key == pg.K_w: #wキーで資金レベルを増加
+                    res = money.change_level()
+                    if not res: #成功時、失敗時の音声を再生
+                        sound_money_failure.play(0)
+                    else:
+                        sound_money_success.play(0)
 
         # 敵の出現
         if (tmr + 1) % 60 == 0:  # 1秒ごとに敵を生成
@@ -286,7 +318,7 @@ def main():
                     enemy.moving = False
                     if battle(cat, enemy):
                         enemy_list.remove(enemy) # バトル後に敵を削除
-                        money += 50  # 勝ったらお金が増える
+                        money.kill_bonus(20)  # 勝ったらお金が増える
                         cat.moving = True  # 敵を倒したら再び前に進む
                         Beam.ct -= 5
                         if Beam.ct <= 0:
@@ -297,24 +329,21 @@ def main():
                         enemy.moving = True #見方を倒したら再び前に進む
 
             #ビームの攻撃
-            for beam in beams:
-                for enemy in enemy_list:
-                    if beam.rct.colliderect(enemy.rect) and enemy not in beam.hit_targets:  # ビームが敵に当たった かつ　まだこの敵にビームが当たっていないならば
-                        enemy.health -= 50  # 体力を50減らす
-                        beam.hit_targets.append(enemy) #この敵にビームが当たったことを記録
+        for beam in beams:
+            for enemy in enemy_list:
+                if beam.rct.colliderect(enemy.rect) and enemy not in beam.hit_targets:  # ビームが敵に当たった かつ　まだこの敵にビームが当たっていないならば
+                    enemy.health -= 50  # 体力を50減らす
+                    beam.hit_targets.append(enemy) #この敵にビームが当たったことを記録
 
-                        # 爆発エフェクトを生成
-                        explosions.append(Explosion(enemy.rect.centerx, enemy.rect.centery))
+                    # 爆発エフェクトを生成
+                    explosions.append(Explosion(enemy.rect.centerx, enemy.rect.centery))
 
-                        if enemy.health <= 0:  # 敵の体力が0以下になったら
-                            enemy_list.remove(enemy)  # 敵を削除
-                            money += 50  # お金を増やす
-                            Beam.ct -= 5
-                            if Beam.ct <= 0:
-                                Beam.ct = 0
-
-
-
+                    if enemy.health <= 0:  # 敵の体力が0以下になったら
+                        enemy_list.remove(enemy)  # 敵を削除
+                        money.kill_bonus(20)  # お金を増やす
+                        Beam.ct -= 5
+                        if Beam.ct <= 0:
+                            Beam.ct = 0
 
         # 敵が自城を攻撃する処理
         for enemy in enemy_list:
@@ -338,22 +367,31 @@ def main():
         for enemy in enemy_list:
             enemy.draw(screen)
 
-        # 資源を表示
-        font = pg.font.Font(None, 36)
-        money_text = font.render(f"Money: {money}", True, BLACK)
-        screen.blit(money_text, (10, 10))
+        if tmr % 1 == 0:    #2フレームごとに資金を増加
+            money.update()
 
-        #Beamクールタイム表示
-        beam_text = font.render(f"Beam.CT: {Beam.ct}", True, BLACK)
-        beam_pg = beam_text.get_width() / 2
-        screen.blit(beam_text, (WIDTH / 2 - beam_pg, 10))
+        #資金レベルを描画
+        if money.level < money.max_level:
+            button_text = f"push 'W': Money Lv up (cost={money.level_up_cost:.0f})"
+        else:
+            button_text = f"push 'W': Money Lv up (Lv. MAX)"
+        screen.blit(font.render(button_text, True, BLACK), (10, 10))
+
+        # 資金を表示
+        money_text = font.render(f"Money: {money.money:.0f}/{money.max_money} (Lv.{money.level})", True, BLACK)
+        screen.blit(money_text, (10, 40))
 
         # HPを表示
         castle_hp_text = font.render(f"My Castle HP: {cat_castle.health}", True, BLACK)
-        screen.blit(castle_hp_text, (10, 40))
+        screen.blit(castle_hp_text, (10, 70))
         enemy_castle_hp_text = font.render(f"Enemy Castle HP: {enemy_castle.health:4}", True, BLACK)
         enemy_castle_health_pg = enemy_castle_hp_text.get_width()
         screen.blit(enemy_castle_hp_text, (WIDTH - enemy_castle_health_pg, 70))
+
+        #ビームクールタイムを表示
+        beam_ct_txt = font.render(f"beam CT: {Beam.ct}", True, RED)
+        beam_pg = beam_ct_txt.get_width() / 2
+        screen.blit(beam_ct_txt, (WIDTH / 2 - beam_pg, 70))
 
         for i, cat in enumerate(cat_list):
             hp_text = font.render(f"Caractor {i + 1} HP: {cat.health}", True, BLACK)
@@ -370,7 +408,6 @@ def main():
                 beam.update(screen)
         if tmr % 60 == 0 and Beam.ct > 0:
             Beam.ct -= 1
-        
 
         # 爆発エフェクトの更新と描画
         for explosion in explosions[:]:  # スライスでコピーして削除
@@ -378,7 +415,6 @@ def main():
             explosion.draw(screen)
             if explosion.lifetime <= 0:
                 explosions.remove(explosion)  # ライフタイムが0になったら削除
-
 
         # ゲーム終了条件
         if cat_castle.health <= 0:
