@@ -224,7 +224,7 @@ def end_screen(message):
     end_background = pg.transform.scale(end_background, (WIDTH, HEIGHT))  # スケーリング
     screen.blit(end_background, (0, 0))  # 背景を描画
 
-    end_text = font.render(message, True, BLACK)
+    end_text = font_big.render(message, True, BLACK)
     screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2 - end_text.get_height() // 2))
     pg.display.flip()
     pg.time.wait(3000)  # 3秒間表示
