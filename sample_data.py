@@ -101,29 +101,31 @@ class Money:    #資金クラス
         self.rate = 1   #2フレーム当たりの増加資金
         self.money = 0   #資金
         self.max_money = 500  #資金の上限
-        self.level = 1  #現在のレベル
-        self.max_level = 5
-        self.level_up_cost = self.max_money * 0.8
+        self.level = 1  #現在の資金レベル
+        self.max_level = 5  #資金レベルの上限
+        self.level_up_cost = self.max_money * 0.8   #資金レベルアップに必要となるコスト
 
     def update(self):
-        self.money += self.rate
+        self.money += self.rate #一定時間ごとに資金を増加
+        #上限を超えない
         if self.money >= self.max_money:
             self.money = self.max_money
     
     def kill_bonus(self, bonus: int):
-        self.money += bonus
+        self.money += bonus #相手ユニットを倒した際に資金を獲得
+        #上限を超えない
         if self.money >= self.max_money:
             self.money = self.max_money
 
     def change_level(self) -> bool:
-        if self.level < self.max_level and self.money >= self.level_up_cost:
-            self.rate += 1
-            self.money -= self.level_up_cost
-            self.max_money += 500
-            self.level += 1
-            self.level_up_cost = self.max_money * 0.8
-            return True
-        else:
+        if self.level < self.max_level and self.money >= self.level_up_cost:    #レベルが最大値でないかつ必要資金が集まっている場合
+            self.money -= self.level_up_cost    #必要資金を消費
+            self.rate += 1  #時間増加資金を追加
+            self.max_money += 500   #上限を増加
+            self.level += 1 #レベルを増加
+            self.level_up_cost = self.max_money * 0.8   #レベルアップに必要なコストを再設定
+            return True #正常終了Trueを返却
+        else:   #条件を満たさない場合Falseを返却
             return False
 
 
@@ -167,9 +169,9 @@ def main():
                     money.money -= 100
                 if event.key == pg.K_q:
                     beams.append(Beam(cat_castle))
-                if event.key == pg.K_w:
+                if event.key == pg.K_w: #wキーで資金レベルを増加
                     res = money.change_level()
-                    if not res:
+                    if not res: #成功時、失敗時の音声を再生
                         sound_money_failure.play(1)
                     else:
                         sound_money_success.play(1)
@@ -222,16 +224,17 @@ def main():
         for enemy in enemy_list:
             enemy.draw(screen)
 
-        if tmr % 1 == 0:
+        if tmr % 1 == 0:    #2フレームごとに資金を増加
             money.update()
 
+        #資金レベルを描画
         if money.level < money.max_level:
             button_text = f"push 'W': Money Lv up. (cost={money.level_up_cost:.0f})"
         else:
             button_text = f"push 'W': Money Lv up. (Lv. MAX)"
         screen.blit(font.render(button_text, True, BLACK), (10, 10))
 
-        # 資源を表示
+        # 資金を表示
         money_text = font.render(f"Money: {money.money:.0f}/{money.max_money} (Lv.{money.level})", True, BLACK)
         screen.blit(money_text, (10, 40))
 
