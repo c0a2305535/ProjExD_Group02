@@ -165,7 +165,7 @@ def main():
                 if event.key == pg.K_SPACE and money >= 100:  # スペースキーで召喚
                     y_position = HEIGHT // 2  # 中央のy座標に設定
                     cat_list.append(Cat(y_position))
-                    money -= 100
+                    money -= 100  
                 if event.key == pg.K_q:
                     beams.append(Beam(cat_castle))
 
@@ -194,6 +194,7 @@ def main():
                         enemy_list.remove(enemy) # バトル後に敵を削除
                         money += 50  # 勝ったらお金が増える
                         cat.moving = True  # 敵を倒したら再び前に進む
+                        break
                     else:
                         cat_list.remove(cat)  # 負けたらキャットを削除
                         enemy.moving = True #見方を倒したら再び前に進む
