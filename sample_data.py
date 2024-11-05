@@ -64,9 +64,9 @@ class Enemy(Character):
 class Castle:
     def __init__(self, x, y, health, is_enemy):
         if is_enemy :
-            self.image = pg.transform.rotozoom(pg.image.load("fig/S__14606339.png"),0,0.25)
-        else:
             self.image = pg.image.load("fig/Eiffel_tower.png")
+        else:
+            self.image = pg.image.load("fig/landmark_sapporo_terebitou.png")
         self.rect = self.image.get_rect(topleft=(x, y))
         self.health = health
 
