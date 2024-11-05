@@ -1,5 +1,5 @@
 # こうかとん戦争
-![こうかとん戦争] (READMEpicture/1.png)
+![こうかとん戦争](READMEpicture/1.png)
 ## 実行環境の必要条件
 * python >= 3.10
 * pygame >= 2.1
