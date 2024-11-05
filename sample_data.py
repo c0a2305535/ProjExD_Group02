@@ -172,9 +172,9 @@ def main():
                 if event.key == pg.K_w: #wキーで資金レベルを増加
                     res = money.change_level()
                     if not res: #成功時、失敗時の音声を再生
-                        sound_money_failure.play(1)
+                        sound_money_failure.play(0)
                     else:
-                        sound_money_success.play(1)
+                        sound_money_success.play(0)
 
         # 敵の出現
         spawn_timer += 1
