@@ -2,7 +2,6 @@ import pygame as pg
 import os
 import random
 import math
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
@@ -26,9 +25,29 @@ WIDTH, HEIGHT = 800, 600
 screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("にゃんこ大戦争風ゲーム")
 
+# 背景画像の読み込み
+background = pg.image.load("fig/background.png")  # 背景画像を読み込み
+background = pg.transform.scale(background, (WIDTH, HEIGHT))  # スケーリング
+
 # カラー定義
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+
+# フォント設定
+font = pg.font.Font(None, 74)
+small_font = pg.font.Font(None, 36)
+
+# スタート画面の表示関数
+def start_screen():
+    start_background = pg.image.load("fig/start_background.png")  # スタート画面用の背景画像を読み込み
+    start_background = pg.transform.scale(start_background, (WIDTH, HEIGHT))  # スケーリング
+    screen.blit(start_background, (0, 0))  # 背景を描画
+
+    title_text = font.render("Cat Battle Game", True, BLACK)
+    start_text = small_font.render("Press Enter to Start", True, BLACK)
+    screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, HEIGHT // 2 - 100))
+    screen.blit(start_text, (WIDTH // 2 - start_text.get_width() // 2, HEIGHT // 2))
+    pg.display.flip()
 
 # キャラクターの基底クラス
 class Character:
@@ -112,8 +131,24 @@ def battle(cat, enemy):
             cat.health -= enemy.attack_power
     return cat.health > 0  # Trueならキャットが勝った
 
+# 終了画面表示用関数
+def end_screen(message):
+    end_background = pg.image.load("fig/end_background.png")  # 終了画面用の背景画像を読み込み
+    end_background = pg.transform.scale(end_background, (WIDTH, HEIGHT))  # スケーリング
+    screen.blit(end_background, (0, 0))  # 背景を描画
+
+    end_text = font.render(message, True, BLACK)
+    screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2 - end_text.get_height() // 2))
+    pg.display.flip()
+    pg.time.wait(3000)  # 3秒間表示
+
+
 # ゲームのメインループ
 def main():
+    pg.init()  # Pygameの初期化
+    pg.mixer.init()  # ミキサーの初期化
+    pg.mixer.music.load("fig/battle_music.wav")  # 音楽ファイルの読み込み
+    pg.mixer.music.play(-1)  # 音楽をループ再生
     clock = pg.time.Clock()
     cat_list = []
     enemy_list = []
@@ -180,7 +215,7 @@ def main():
                 cat_list.remove(cat)  # 城に攻撃した味方を削除
 
         # 描画
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))  # 背景を描画
         cat_castle.draw(screen)
         enemy_castle.draw(screen)
 
@@ -216,9 +251,15 @@ def main():
                 beam.update(screen)
         if tmr % 60 == 0 and Beam.ct > 0:
             Beam.ct -= 1
-                # ゲーム終了条件
-        if cat_castle.health <= 0 or enemy_castle.health <= 0:
+        
+
+        # ゲーム終了条件
+        if cat_castle.health <= 0:
+            end_screen("Lose..")
             running = False  # ゲーム終了
+        elif enemy_castle.health <= 0:
+            end_screen("Win!!")
+            running = False #ゲーム終了
 
         pg.display.flip()
         clock.tick(60)
@@ -227,4 +268,22 @@ def main():
     pg.quit()
 
 if __name__ == "__main__":
+    game_active = False  # ゲームが開始されているかどうか
+
+    # スタート画面のループ
+    while not game_active:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                exit()
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_RETURN:
+                    game_active = True  # Enterキーでゲーム開始
+        # スタート画面を表示
+        start_screen()
+
+    # メインゲームの開始
     main()
+    pg.quit()
+
+
