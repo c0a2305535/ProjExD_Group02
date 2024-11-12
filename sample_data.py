@@ -157,7 +157,7 @@ class Beam:
         
         self.hit_targets = []
 
-    def update(self, screen: pg.Surface):
+    def update(self):
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct) 
 
@@ -229,6 +229,23 @@ def end_screen(message):
     pg.display.flip()
     pg.time.wait(3000)  # 3秒間表示
 
+#ボタン表示用関数
+def draw_button(pos, frame, img1, img2=None):
+    """
+    ボタンを描画する
+    """
+
+    if pos < 1 or WIDTH // frame.get_width() < pos:
+        print("cant draw this place now.")
+        return -1
+
+    x = WIDTH - ((frame.get_width() + 10) * pos)
+    y = HEIGHT - frame.get_height() - 25
+    screen.blit(frame, (x, y))
+    screen.blit(img1, (x + frame.get_width() / 2 - img1.get_width() / 2, y + 15))
+    if img2 is not None:
+        screen.blit(img2, (x + frame.get_width() / 2 - img2.get_width() / 2, y + frame.get_height()- img2.get_height() - 10))
+
 
 # ゲームのメインループ
 def main():
@@ -255,10 +272,12 @@ def main():
     running = True
     tmr = 0
 
-    cat_img_name = ["fig/AUNZ4365.JPG","fig/IMG_E0591.JPG","fig/IMG_9345.JPG"]
-    caractor_imgs = []
-    for i in cat_img_name:
-        caractor_imgs.append(pg.transform.scale(pg.image.load(i).convert_alpha(), (50, 50)))
+    frame_img = pg.transform.scale(pg.image.load("fig/frame.png"), (150, 100))
+
+    cat_img_data = [["fig/AUNZ4365.JPG", 50],["fig/IMG_E0591.JPG", 100],["fig/IMG_9345.JPG", 200]]
+    character_imgs = []
+    for i in cat_img_data:
+        character_imgs.append(pg.transform.scale(pg.image.load(i[0]).convert_alpha(), (50, 50)))
 
     enemy_classes = [FastEnemy, TankEnemy, BalancedEnemy]
     enemy_img_data = [["fig/speed.jpg", (125, 65)], ["fig/tank.jpg", (140, 140)], ["fig/balance.jpg", (80, 100)]]
@@ -276,13 +295,13 @@ def main():
             # キャットを召喚
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_1 and money.money >= 50:
-                    cat_list.append(Normal(y_position,caractor_imgs[0]))
+                    cat_list.append(Normal(y_position,character_imgs[0]))
                     money.money -= 50
                 elif event.key == pg.K_2 and money.money >= 100:
-                    cat_list.append(Strong(y_position,caractor_imgs[1]))
+                    cat_list.append(Strong(y_position,character_imgs[1]))
                     money.money -= 100
                 elif event.key == pg.K_3 and money.money >= 200:
-                    cat_list.append(Health(y_position,caractor_imgs[2]))
+                    cat_list.append(Health(y_position,character_imgs[2]))
                     money.money -= 200
                 
                 if event.key == pg.K_q and Beam.ct == 0:
@@ -362,6 +381,26 @@ def main():
         cat_castle.draw(screen)
         enemy_castle.draw(screen)
 
+        beam_text = font.render("Beam", True, RED)
+        if Beam.ct <= 0:
+            beam_ct_text_origin = "Ready!!"
+        else:
+            beam_ct_text_origin = f"CT: {Beam.ct}s"
+        beam_ct_text = font.render(beam_ct_text_origin, True, RED)
+        draw_button(1, frame_img, beam_text, beam_ct_text)
+
+        if money.level < money.max_level:
+            level_text = cost_text = font.render(f"Money Lv. {money.level}", True, BLACK)
+            cost_text = font.render(f"{money.level_up_cost:.0f}", True, BLACK)
+        else:
+            level_text = cost_text = font.render("Money", True, BLACK)
+            cost_text = font.render("Lv. MAX!!", True, BLACK)
+        draw_button(2, frame_img, level_text, cost_text)
+
+        for (i, character) in enumerate(cat_img_data):
+            cost_text = font.render(f"{character[1]}", True, BLACK)
+            draw_button(i + 3, frame_img, character_imgs[i], cost_text)
+
         for cat in cat_list:
             cat.draw(screen)
         for enemy in enemy_list:
@@ -405,7 +444,7 @@ def main():
             if not check_bound(beam.rct)[0]:
                 beams.remove(beam)
             else:
-                beam.update(screen)
+                beam.update()
         if tmr % 60 == 0 and Beam.ct > 0:
             Beam.ct -= 1
 
@@ -433,6 +472,8 @@ def main():
 if __name__ == "__main__":
     game_active = False  # ゲームが開始されているかどうか
 
+# スタート画面を表示
+    start_screen()
     # スタート画面のループ
     while not game_active:
         for event in pg.event.get():
@@ -442,8 +483,6 @@ if __name__ == "__main__":
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_RETURN:
                     game_active = True  # Enterキーでゲーム開始
-        # スタート画面を表示
-        start_screen()
 
     # メインゲームの開始
     main()
