@@ -320,10 +320,8 @@ def main():
                     (mouse_x, mouse_y) = event.pos
 
                     if HEIGHT - frame_img.get_height() - 25 <= mouse_y <= HEIGHT - 25:  #ボタンの高さにポインタがある場合
-                        print("in if")
                         #以下ボタンごとのx座標内にポインタがある場合
                         if WIDTH - ((frame_img.get_width() + 10) * 1) <= mouse_x <= WIDTH - (frame_img.get_width() * (1 - 1) + 10 * 1) and Beam.ct <= 0:
-                            print("in if")
                             beams.append(Beam(cat_castle))
                             Beam.ct = 30
                         elif WIDTH - ((frame_img.get_width() + 10) * 2) <= mouse_x <= WIDTH - (frame_img.get_width() * (2 - 1) + 10 * 2):
