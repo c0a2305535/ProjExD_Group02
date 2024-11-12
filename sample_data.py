@@ -93,7 +93,7 @@ class Strong(Character):
 # 防御力が高いキャットクラス
 class Health(Character):
     def __init__(self, y,img_obj):
-        super().__init__(150, y, health=300, attack_power=5, img_obj=img_obj)
+        super().__init__(150, y, health=500, attack_power=10, img_obj=img_obj)
 
     def move(self):
         if self.moving:
@@ -281,9 +281,9 @@ def main():
                 elif event.key == pg.K_2 and money.money >= 100:
                     cat_list.append(Strong(y_position,caractor_imgs[1]))
                     money.money -= 100
-                elif event.key == pg.K_3 and money.money >= 200:
+                elif event.key == pg.K_3 and money.money >= 150:
                     cat_list.append(Health(y_position,caractor_imgs[2]))
-                    money.money -= 200
+                    money.money -= 150
                 
                 if event.key == pg.K_q and Beam.ct == 0:
                     beams.append(Beam(cat_castle))
