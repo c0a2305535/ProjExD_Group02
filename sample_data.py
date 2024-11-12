@@ -147,7 +147,7 @@ class Beam:
     こうかとんが放つビームに関するクラス
     """
 
-    ct = 30
+    ct = 5
     def __init__(self, castle: Castle):
         self.img = pg.image.load("fig/beam.png")  # ビームSurface
         self.rct = self.img.get_rect()  # ビームSurfaceのRectを抽出
@@ -314,6 +314,37 @@ def main():
                         sound_money_failure.play(0)
                     else:
                         sound_money_success.play(0)
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    (mouse_x, mouse_y) = event.pos
+                    print(WIDTH - ((frame_img.get_width() + 10) * 1), WIDTH - (frame_img.get_width() * (1 - 1) + 10 * 1))
+                    print(mouse_x, mouse_y)
+                    """
+                    x = WIDTH - ((frame.get_width() + 10) * pos)
+                    y = HEIGHT - frame.get_height() - 25
+                    """
+                    if HEIGHT - frame_img.get_height() - 25 <= mouse_y <= HEIGHT - 25:
+                        print("in if")
+                        if WIDTH - ((frame_img.get_width() + 10) * 1) <= mouse_x <= WIDTH - (frame_img.get_width() * (1 - 1) + 10 * 1) and Beam.ct <= 0:
+                            print("in if")
+                            beams.append(Beam(cat_castle))
+                            Beam.ct = 30
+                        elif WIDTH - ((frame_img.get_width() + 10) * 2) <= mouse_x <= WIDTH - (frame_img.get_width() * (2 - 1) + 10 * 2):
+                            res = money.change_level()
+                            if not res: #成功時、失敗時の音声を再生
+                                sound_money_failure.play(0)
+                            else:
+                                sound_money_success.play(0)
+                        elif WIDTH - ((frame_img.get_width() + 10) * 3) <= mouse_x <= WIDTH - (frame_img.get_width() * (3 - 1) + 10 * 3) and money.money >= 50:
+                            cat_list.append(Normal(y_position,character_imgs[0]))
+                            money.money -= 50
+                        elif WIDTH - ((frame_img.get_width() + 10) * 4) <= mouse_x <= WIDTH - (frame_img.get_width() * (4 - 1) + 10 * 4) and money.money >= 100:
+                            cat_list.append(Strong(y_position,character_imgs[1]))
+                            money.money -= 100
+                        elif WIDTH - ((frame_img.get_width() + 10) * 5) <= mouse_x <= WIDTH - (frame_img.get_width() * (5 - 1) + 10 * 5) and money.money >= 200:
+                            cat_list.append(Health(y_position,character_imgs[2]))
+                            money.money -= 200
+
 
         # 敵の出現
         if (tmr + 1) % 60 == 0:  # 1秒ごとに敵を生成
