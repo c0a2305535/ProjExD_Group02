@@ -259,7 +259,7 @@ def main():
     beams = []
     tmr = 0
 
-    sound_bgm = pg.mixer.Sound("sound/battle_music.wav")
+    sound_bgm = pg.mixer.Sound("sound/ちょっと忘れ物をしちゃった的なBGM.mp3")
     sound_money_failure = pg.mixer.Sound("sound/キャンセル3.mp3")   #資金レベルアップ失敗音
     sound_money_success = pg.mixer.Sound("sound/ゲージ回復2.mp3")   #資金レベルアップ成功音
 
