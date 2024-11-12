@@ -232,15 +232,15 @@ def end_screen(message):
 #ボタン表示用関数
 def draw_button(pos, frame, img1, img2=None):
     """
-    ボタンを描画する
+    ボタンを描画する関数
     """
 
     if pos < 1 or WIDTH // frame.get_width() < pos:
         print("cant draw this place now.")
         return -1
 
-    x = WIDTH - ((frame.get_width() + 10) * pos)
-    y = HEIGHT - frame.get_height() - 25
+    x = WIDTH - ((frame.get_width() + 10) * pos)    #ボタンの枠サイズとボタン番号から横座標を決定
+    y = HEIGHT - frame.get_height() - 25    #ボタンの枠サイズから縦座標を決定
     screen.blit(frame, (x, y))
     screen.blit(img1, (x + frame.get_width() / 2 - img1.get_width() / 2, y + 15))
     if img2 is not None:
@@ -315,18 +315,11 @@ def main():
                     else:
                         sound_money_success.play(0)
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 1:
+                if event.button == 1:   #マウス左クリック時
                     (mouse_x, mouse_y) = event.pos
-                    print(WIDTH - ((frame_img.get_width() + 10) * 1), WIDTH - (frame_img.get_width() * (1 - 1) + 10 * 1))
-                    print(mouse_x, mouse_y)
-                    """
-                    x = WIDTH - ((frame.get_width() + 10) * pos)
-                    y = HEIGHT - frame.get_height() - 25
-                    """
-                    if HEIGHT - frame_img.get_height() - 25 <= mouse_y <= HEIGHT - 25:
-                        print("in if")
+
+                    if HEIGHT - frame_img.get_height() - 25 <= mouse_y <= HEIGHT - 25:  #ボタンの高さにポインタがある場合
                         if WIDTH - ((frame_img.get_width() + 10) * 1) <= mouse_x <= WIDTH - (frame_img.get_width() * (1 - 1) + 10 * 1) and Beam.ct <= 0:
-                            print("in if")
                             beams.append(Beam(cat_castle))
                             Beam.ct = 30
                         elif WIDTH - ((frame_img.get_width() + 10) * 2) <= mouse_x <= WIDTH - (frame_img.get_width() * (2 - 1) + 10 * 2):
