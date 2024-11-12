@@ -93,7 +93,7 @@ class Strong(Character):
 # 防御力が高いキャットクラス
 class Health(Character):
     def __init__(self, y,img_obj):
-        super().__init__(150, y, health=500, attack_power=10, img_obj=img_obj)
+        super().__init__(150, y, health=400, attack_power=10, img_obj=img_obj)
 
     def move(self):
         if self.moving:
@@ -274,7 +274,7 @@ def main():
 
     frame_img = pg.transform.scale(pg.image.load("fig/frame.png"), (150, 100))
 
-    cat_img_data = [["fig/AUNZ4365.JPG", 50],["fig/IMG_E0591.JPG", 100],["fig/IMG_9345.JPG", 200]]
+    cat_img_data = [["fig/2.png", 50],["fig/IMG_E0591.JPG", 100],["fig/IMG_9345.JPG", 200]]
     character_imgs = []
     for i in cat_img_data:
         character_imgs.append(pg.transform.scale(pg.image.load(i[0]).convert_alpha(), (50, 50)))
